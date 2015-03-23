@@ -21,11 +21,17 @@
     <int-stream:stdout-channel-adapter id="consumer1" channel="messageChannel" append-newline="true"/>
     <int-stream:stdout-channel-adapter id="consumer2" channel="messageChannel" append-newline="true"/>
 
+    <!-- This is a subscriber channel Subscribable channels don't buffer or hold onto messages. They simply deliver them to all the
+    subscribers that is the adapters on the consuming end of the channel. Subscribers deliver the messages to all subscribers -->
+    <!-- Basically it is google map and stdin and stdout both are the riders -->
+   <!-- <int:publish-subscribe-channel id="messageChannel"/>-->
+
+
     <!-- This is a Pollable channel => It is use buffer store the message if consumers are not available to take the message -->
     <!-- Basically it is google map and stdin and stdout both are the riders -->
     <!-- Here capacity tell us the buffer limit -->
     <int:channel id="messageChannel">
-        <int:queue capacity="2" />
+        <int:queue capacity="2"/>
     </int:channel>
 
 </beans>
