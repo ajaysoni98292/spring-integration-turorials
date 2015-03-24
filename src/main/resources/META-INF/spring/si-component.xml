@@ -3,23 +3,20 @@
        xmlns:int="http://www.springframework.org/schema/integration"
        xmlns:int-file="http://www.springframework.org/schema/integration/file"
        xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
        xsi:schemaLocation="
-        http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/integration
-        http://www.springframework.org/schema/integration/spring-integration.xsd
-        http://www.springframework.org/schema/integration/stream
-        http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
-        http://www.springframework.org/schema/integration/file
-        http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
-
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+	http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+	http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
     <!-- This int-stream: stdin-channel-adapter is used to take the input from the console and pass into the corresponding channel-->
-<!--    <int-stream:stdin-channel-adapter id="producer" channel="messageChannel"/>-->
+    <!--    <int-stream:stdin-channel-adapter id="producer" channel="messageChannel"/>-->
 
     <!-- This line is telling to spring that stdin-channel-adapter how often to check the Standard input stream for text -->
-<!--    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>-->
+    <!--    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>-->
 
     <!-- Now i am adding two stdout-channel-adapter that is used to take the message from the channel and pass it to consumers -->
     <!-- Here i am adding two consumers for single message channel -->
@@ -37,8 +34,8 @@
     <!-- <int:channel id="messageChannel"><int:queue capacity="2"/></int:channel> -->
 
     <!-- This outbound adapters is used to write the message into the file systems -->
-    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer1" directory="file:c://outbound" />
-    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer2" directory="file:c://outbound1" />
+    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer1" directory="file:c://outbound"/>
+    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer2" directory="file:c://outbound1"/>
 
 
     <!-- This is inbound adapter for reading the file and pass it to the target consumers -->
@@ -48,15 +45,15 @@
     <int-file:inbound-channel-adapter id="producer-file-adapter"
                                       channel="inboundChannel" directory="file:c://inbound"
                                       prevent-duplicates="true">
-        <int:poller fixed-rate="5000" />
+        <int:poller fixed-rate="5000"/>
     </int-file:inbound-channel-adapter>
 
     <!-- Now added a filter that takes input from the inbound channel and filter the message and pass it the outbound channel -->
 
-    <int:filter input-channel="inboundChannel"
-                output-channel="outboundChannel" ref="selector" />
+    <!--    <int:filter input-channel="inboundChannel"
+                    output-channel="outboundChannel" ref="selector" />
 
-    <bean id="selector" class="com.spring.integration.channel.FileSelector"></bean>
+        <bean id="selector" class="com.spring.integration.channel.FileSelector"></bean>-->
 
     <!-- Now i have to create the inbound and outbound channel for this configuration -->
     <!-- Because spring integration only know about the channel not inbound and outbound so for this i am telling to spring integration -->
@@ -64,5 +61,22 @@
 
     <int:publish-subscribe-channel id="inboundChannel"></int:publish-subscribe-channel>
     <int:publish-subscribe-channel id="outboundChannel"></int:publish-subscribe-channel>
+    <int:publish-subscribe-channel id="xml-inboundChannel"></int:publish-subscribe-channel>
+    <!-- Here i am trying to create the xpath filter -->
+    <!-- Now here we are adding the file to string transformer because if want to create the filter its need the file read is necessary -->
+    <!-- Then after we can perform action on this message -->
+
+    <int-file:file-to-string-transformer
+            id="file-2-string-transformer" input-channel="inboundChannel"
+            output-channel="xml-inboundChannel" charset="UTF-8" />
+
+    <!-- Now adding filter for this configuration -->
+    <int-xml:xpath-filter id="xpathFilter"
+                          input-channel="xml-inboundChannel" match-type="exact" output-channel="outboundChannel"
+                          xpath-expression-ref="filterXpathExp">
+    </int-xml:xpath-filter>
+    <int-xml:xpath-expression id="filterXpathExp"
+                              expression="//country='USA'"></int-xml:xpath-expression>
+
 
 </beans>
