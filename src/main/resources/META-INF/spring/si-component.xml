@@ -16,10 +16,10 @@
         http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
     <!-- This int-stream: stdin-channel-adapter is used to take the input from the console and pass into the corresponding channel-->
-    <int-stream:stdin-channel-adapter id="producer" channel="messageChannel"/>
+<!--    <int-stream:stdin-channel-adapter id="producer" channel="messageChannel"/>-->
 
-    <!-- This line is telling to spring that stdin-channel-adapter how ofter to check the Standard input stream for text -->
-    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>
+    <!-- This line is telling to spring that stdin-channel-adapter how often to check the Standard input stream for text -->
+<!--    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>-->
 
     <!-- Now i am adding two stdout-channel-adapter that is used to take the message from the channel and pass it to consumers -->
     <!-- Here i am adding two consumers for single message channel -->
@@ -40,5 +40,16 @@
     <!-- This outbound adapters is used to write the message into the file systems -->
     <int-file:outbound-channel-adapter channel="messageChannel" id="consumer1" directory="file:c://outbound" />
     <int-file:outbound-channel-adapter channel="messageChannel" id="consumer2" directory="file:c://outbound1" />
+
+
+    <!-- This is inbound adapter for reading the file and pass it to the target consumers -->
+    <!-- Here i am adding the producer-file-adapter and poller is used to how often inbound-channel-adapter
+        looks for the text.
+    -->
+    <int-file:inbound-channel-adapter id="producer-file-adapter"
+                                      channel="messageChannel" directory="file:c://inbound"
+                                      prevent-duplicates="true">
+        <int:poller fixed-rate="5000" />
+    </int-file:inbound-channel-adapter>
 
 </beans>
