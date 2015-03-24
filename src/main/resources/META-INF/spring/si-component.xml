@@ -29,7 +29,6 @@
     <!-- This is a subscriber channel Subscribable channels don't buffer or hold onto messages. They simply deliver them to all the
     subscribers that is the adapters on the consuming end of the channel. Subscribers deliver the messages to all subscribers -->
     <!-- Basically it is google map and stdin and stdout both are the riders -->
-    <int:publish-subscribe-channel id="messageChannel"/>
 
 
     <!-- This is a Pollable channel => It is use buffer store the message if consumers are not available to take the message -->
@@ -38,8 +37,8 @@
     <!-- <int:channel id="messageChannel"><int:queue capacity="2"/></int:channel> -->
 
     <!-- This outbound adapters is used to write the message into the file systems -->
-    <int-file:outbound-channel-adapter channel="messageChannel" id="consumer1" directory="file:c://outbound" />
-    <int-file:outbound-channel-adapter channel="messageChannel" id="consumer2" directory="file:c://outbound1" />
+    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer1" directory="file:c://outbound" />
+    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer2" directory="file:c://outbound1" />
 
 
     <!-- This is inbound adapter for reading the file and pass it to the target consumers -->
@@ -47,9 +46,23 @@
         looks for the text.
     -->
     <int-file:inbound-channel-adapter id="producer-file-adapter"
-                                      channel="messageChannel" directory="file:c://inbound"
+                                      channel="inboundChannel" directory="file:c://inbound"
                                       prevent-duplicates="true">
         <int:poller fixed-rate="5000" />
     </int-file:inbound-channel-adapter>
+
+    <!-- Now added a filter that takes input from the inbound channel and filter the message and pass it the outbound channel -->
+
+    <int:filter input-channel="inboundChannel"
+                output-channel="outboundChannel" ref="selector" />
+
+    <bean id="selector" class="com.spring.integration.channel.FileSelector"></bean>
+
+    <!-- Now i have to create the inbound and outbound channel for this configuration -->
+    <!-- Because spring integration only know about the channel not inbound and outbound so for this i am telling to spring integration -->
+    <!-- that i inboundChannel and outboundChannel is a part of my channel -->
+
+    <int:publish-subscribe-channel id="inboundChannel"></int:publish-subscribe-channel>
+    <int:publish-subscribe-channel id="outboundChannel"></int:publish-subscribe-channel>
 
 </beans>
