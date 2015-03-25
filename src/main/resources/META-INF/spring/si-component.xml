@@ -13,15 +13,15 @@
 	http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 	http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
     <!-- This int-stream: stdin-channel-adapter is used to take the input from the console and pass into the corresponding channel-->
-    <!--    <int-stream:stdin-channel-adapter id="producer" channel="messageChannel"/>-->
+    <int-stream:stdin-channel-adapter id="producer" channel="inboundChannel"/>
 
     <!-- This line is telling to spring that stdin-channel-adapter how often to check the Standard input stream for text -->
-    <!--    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>-->
+    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>
 
     <!-- Now i am adding two stdout-channel-adapter that is used to take the message from the channel and pass it to consumers -->
     <!-- Here i am adding two consumers for single message channel -->
-    <!--<int-stream:stdout-channel-adapter id="consumer1" channel="messageChannel" append-newline="true"/>-->
-    <!--<int-stream:stdout-channel-adapter id="consumer2" channel="messageChannel" append-newline="true"/>-->
+    <int-stream:stdout-channel-adapter id="consumer1" channel="outboundChannel" append-newline="true"/>
+    <int-stream:stdout-channel-adapter id="consumer2" channel="outboundChannel" append-newline="true"/>
 
     <!-- This is a subscriber channel Subscribable channels don't buffer or hold onto messages. They simply deliver them to all the
     subscribers that is the adapters on the consuming end of the channel. Subscribers deliver the messages to all subscribers -->
@@ -34,19 +34,19 @@
     <!-- <int:channel id="messageChannel"><int:queue capacity="2"/></int:channel> -->
 
     <!-- This outbound adapters is used to write the message into the file systems -->
-    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer1" directory="file:c://outbound"/>
-    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer2" directory="file:c://outbound1"/>
+    <!--    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer1" directory="file:c://outbound"/>
+        <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer2" directory="file:c://outbound1"/>-->
 
 
     <!-- This is inbound adapter for reading the file and pass it to the target consumers -->
     <!-- Here i am adding the producer-file-adapter and poller is used to how often inbound-channel-adapter
         looks for the text.
     -->
-    <int-file:inbound-channel-adapter id="producer-file-adapter"
-                                      channel="inboundChannel" directory="file:c://inbound"
-                                      prevent-duplicates="true">
-        <int:poller fixed-rate="5000"/>
-    </int-file:inbound-channel-adapter>
+    <!--    <int-file:inbound-channel-adapter id="producer-file-adapter"
+                                          channel="inboundChannel" directory="file:c://inbound"
+                                          prevent-duplicates="true">
+            <int:poller fixed-rate="5000"/>
+        </int-file:inbound-channel-adapter>-->
 
     <!-- Now added a filter that takes input from the inbound channel and filter the message and pass it the outbound channel -->
 
@@ -61,22 +61,27 @@
 
     <int:publish-subscribe-channel id="inboundChannel"></int:publish-subscribe-channel>
     <int:publish-subscribe-channel id="outboundChannel"></int:publish-subscribe-channel>
-    <int:publish-subscribe-channel id="xml-inboundChannel"></int:publish-subscribe-channel>
+
+    <!--    <int:publish-subscribe-channel id="xml-inboundChannel"></int:publish-subscribe-channel>-->
     <!-- Here i am trying to create the xpath filter -->
     <!-- Now here we are adding the file to string transformer because if want to create the filter its need the file read is necessary -->
     <!-- Then after we can perform action on this message -->
 
-    <int-file:file-to-string-transformer
-            id="file-2-string-transformer" input-channel="inboundChannel"
-            output-channel="xml-inboundChannel" charset="UTF-8" />
+    <!--    <int-file:file-to-string-transformer
+                id="file-2-string-transformer" input-channel="inboundChannel"
+                output-channel="xml-inboundChannel" charset="UTF-8" />-->
 
     <!-- Now adding filter for this configuration -->
-    <int-xml:xpath-filter id="xpathFilter"
-                          input-channel="xml-inboundChannel" match-type="exact" output-channel="outboundChannel"
-                          xpath-expression-ref="filterXpathExp">
-    </int-xml:xpath-filter>
-    <int-xml:xpath-expression id="filterXpathExp"
-                              expression="//country='USA'"></int-xml:xpath-expression>
+    <!--    <int-xml:xpath-filter id="xpathFilter"
+                              input-channel="xml-inboundChannel" match-type="exact" output-channel="outboundChannel"
+                              xpath-expression-ref="filterXpathExp">
+        </int-xml:xpath-filter>
+        <int-xml:xpath-expression id="filterXpathExp"
+                                  expression="//country='USA'"></int-xml:xpath-expression>-->
 
+    <!--This is transformer that is based spring expression language. That converts the incoming message to reverse order and in uppercase -->
+    <int:transformer input-channel="inboundChannel"
+                     output-channel="outboundChannel"
+                     expression="new StringBuilder(payload).reverse().toString().toUpperCase()"/>
 
 </beans>
