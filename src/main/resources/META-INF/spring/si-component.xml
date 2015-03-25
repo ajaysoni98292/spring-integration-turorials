@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:int="http://www.springframework.org/schema/integration"
-       xmlns:int-file="http://www.springframework.org/schema/integration/file"
-       xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-	http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
-	http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
-	http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
-    <!-- This int-stream: stdin-channel-adapter is used to take the input from the console and pass into the corresponding channel-->
+	http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+<!-- This int-stream: stdin-channel-adapter is used to take the input from the console and pass into the corresponding channel-->
     <int-stream:stdin-channel-adapter id="producer" channel="inboundChannel"/>
 
     <!-- This line is telling to spring that stdin-channel-adapter how often to check the Standard input stream for text -->
@@ -80,8 +76,15 @@
                                   expression="//country='USA'"></int-xml:xpath-expression>-->
 
     <!--This is transformer that is based spring expression language. That converts the incoming message to reverse order and in uppercase -->
-    <int:transformer input-channel="inboundChannel"
+<!--    <int:transformer input-channel="inboundChannel"
                      output-channel="outboundChannel"
-                     expression="new StringBuilder(payload).reverse().toString().toUpperCase()"/>
+                     expression="new StringBuilder(payload).reverse().toString().toUpperCase()"/>-->
+
+    <!-- Here i am defining the bean -->
+    <bean id="myTransformer" class="com.spring.integration.channel.MyTransformer"></bean>
+    <!--Here i am providing the base package where spring search for the components -->
+    <context:component-scan base-package="com.spring.integration.channel" />
+    <!--Here custom transformer is provided -->
+    <int:transformer input-channel="inboundChannel" output-channel="outboundChannel" ref="myTransformer"></int:transformer>
 
 </beans>
