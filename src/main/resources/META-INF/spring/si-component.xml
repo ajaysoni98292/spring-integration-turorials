@@ -1,90 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-file="http://www.springframework.org/schema/integration/file"
+       xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
-       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-	http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+	http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+	http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
-<!-- This int-stream: stdin-channel-adapter is used to take the input from the console and pass into the corresponding channel-->
-    <int-stream:stdin-channel-adapter id="producer" channel="inboundChannel"/>
+    <!-- Adapter for reading files -->
 
-    <!-- This line is telling to spring that stdin-channel-adapter how often to check the Standard input stream for text -->
-    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>
+    <int-file:inbound-channel-adapter id="producer-file-adapter"
+                                      channel="inboundChannel" directory="file:C://inbound"
+                                      prevent-duplicates="true">
+        <int:poller fixed-rate="5000" />
+    </int-file:inbound-channel-adapter>
 
-    <!-- Now i am adding two stdout-channel-adapter that is used to take the message from the channel and pass it to consumers -->
-    <!-- Here i am adding two consumers for single message channel -->
-    <int-stream:stdout-channel-adapter id="consumer1" channel="outboundChannel" append-newline="true"/>
-    <int-stream:stdout-channel-adapter id="consumer2" channel="outboundChannel" append-newline="true"/>
+    <!-- Here i am giving the channel identification according to there ids -->
 
-    <!-- This is a subscriber channel Subscribable channels don't buffer or hold onto messages. They simply deliver them to all the
-    subscribers that is the adapters on the consuming end of the channel. Subscribers deliver the messages to all subscribers -->
-    <!-- Basically it is google map and stdin and stdout both are the riders -->
+    <int:channel id="inboundChannel"></int:channel>
+    <int:channel id="outboundChannel"></int:channel>
+    <int:channel id="xml-inboundChannel"></int:channel>
+
+    <!-- Here i am reading and transforming the xml file -->
+
+    <int-file:file-to-string-transformer
+            id="file-2-string-transformer" input-channel="inboundChannel"
+            output-channel="xml-inboundChannel" charset="UTF-8"/>
+
+    <int-xml:unmarshalling-transformer id="xml-2-object-transformer" input-channel="xml-inboundChannel"
+            output-channel="outboundChannel" unmarshaller="jaxbMarshaller"></int-xml:unmarshalling-transformer>
+
+    <bean id="jaxbMarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+        <property name="contextPath" value="com.spring.integration.channel.domain"></property>
+    </bean>
 
 
-    <!-- This is a Pollable channel => It is use buffer store the message if consumers are not available to take the message -->
-    <!-- Basically it is google map and stdin and stdout both are the riders -->
-    <!-- Here capacity tell us the buffer limit -->
-    <!-- <int:channel id="messageChannel"><int:queue capacity="2"/></int:channel> -->
+    <int:service-activator id="printing-service-activator"
+                           input-channel="outboundChannel" ref="serviceActivator" />
+    <bean id="serviceActivator" class="com.spring.integration.channel.ExampleServiceActivator" />
 
-    <!-- This outbound adapters is used to write the message into the file systems -->
-    <!--    <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer1" directory="file:c://outbound"/>
-        <int-file:outbound-channel-adapter channel="outboundChannel" id="consumer2" directory="file:c://outbound1"/>-->
-
-
-    <!-- This is inbound adapter for reading the file and pass it to the target consumers -->
-    <!-- Here i am adding the producer-file-adapter and poller is used to how often inbound-channel-adapter
-        looks for the text.
-    -->
-    <!--    <int-file:inbound-channel-adapter id="producer-file-adapter"
-                                          channel="inboundChannel" directory="file:c://inbound"
-                                          prevent-duplicates="true">
-            <int:poller fixed-rate="5000"/>
-        </int-file:inbound-channel-adapter>-->
-
-    <!-- Now added a filter that takes input from the inbound channel and filter the message and pass it the outbound channel -->
-
-    <!--    <int:filter input-channel="inboundChannel"
-                    output-channel="outboundChannel" ref="selector" />
-
-        <bean id="selector" class="com.spring.integration.channel.FileSelector"></bean>-->
-
-    <!-- Now i have to create the inbound and outbound channel for this configuration -->
-    <!-- Because spring integration only know about the channel not inbound and outbound so for this i am telling to spring integration -->
-    <!-- that i inboundChannel and outboundChannel is a part of my channel -->
-
-    <int:publish-subscribe-channel id="inboundChannel"></int:publish-subscribe-channel>
-    <int:publish-subscribe-channel id="outboundChannel"></int:publish-subscribe-channel>
-
-    <!--    <int:publish-subscribe-channel id="xml-inboundChannel"></int:publish-subscribe-channel>-->
-    <!-- Here i am trying to create the xpath filter -->
-    <!-- Now here we are adding the file to string transformer because if want to create the filter its need the file read is necessary -->
-    <!-- Then after we can perform action on this message -->
-
-    <!--    <int-file:file-to-string-transformer
-                id="file-2-string-transformer" input-channel="inboundChannel"
-                output-channel="xml-inboundChannel" charset="UTF-8" />-->
-
-    <!-- Now adding filter for this configuration -->
-    <!--    <int-xml:xpath-filter id="xpathFilter"
-                              input-channel="xml-inboundChannel" match-type="exact" output-channel="outboundChannel"
-                              xpath-expression-ref="filterXpathExp">
-        </int-xml:xpath-filter>
-        <int-xml:xpath-expression id="filterXpathExp"
-                                  expression="//country='USA'"></int-xml:xpath-expression>-->
-
-    <!--This is transformer that is based spring expression language. That converts the incoming message to reverse order and in uppercase -->
-<!--    <int:transformer input-channel="inboundChannel"
-                     output-channel="outboundChannel"
-                     expression="new StringBuilder(payload).reverse().toString().toUpperCase()"/>-->
-
-    <!-- Here i am defining the bean -->
-    <bean id="myTransformer" class="com.spring.integration.channel.MyTransformer"></bean>
-    <!--Here i am providing the base package where spring search for the components -->
-    <context:component-scan base-package="com.spring.integration.channel" />
-    <!--Here custom transformer is provided -->
-    <int:transformer input-channel="inboundChannel" output-channel="outboundChannel" ref="myTransformer"></int:transformer>
 
 </beans>
+

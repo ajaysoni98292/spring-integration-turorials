@@ -12,7 +12,6 @@ import java.io.File;
 
 public class FileSelector implements MessageSelector {
 
-    @Override
     public boolean accept(Message<?> message) {
         if (message.getPayload() instanceof File && ((File) message.getPayload()).getName().startsWith("demo")) {
             return false;
