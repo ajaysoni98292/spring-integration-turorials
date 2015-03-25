@@ -21,34 +21,6 @@
     <!-- Here i am giving the channel identification according to there ids -->
 
     <int:channel id="inboundChannel"></int:channel>
-    <int:channel id="outboundChannel"></int:channel>
-    <int:channel id="xml-inboundChannel"></int:channel>
-
-    <!--here i am defining the channels for outbound message -->
-
-    <int:channel id="usaChannel"></int:channel>
-    <int:channel id="ausChannel"></int:channel>
-
-
-    <!--Now here i am defining the outbound channel for usa and aus -->
-
-    <int-file:outbound-channel-adapter channel="ausChannel"
-                                       id="consumer-file-adapter1"
-                                       directory="file:c://outboundAustralia" />
-
-    <int-file:outbound-channel-adapter channel="usaChannel"
-                                       id="consumer-file-adapter2"
-                                       directory="file:c://outboundAmerica" />
-
-    <!-- here i am giving the router -->
-
-    <int-xml:xpath-router id="orderTypeRouter"
-                          input-channel="xml-inboundChannel">
-        <int-xml:xpath-expression expression="/shiporder/shipto/country" />
-        <int-xml:mapping value="AUS" channel="ausChannel" />
-        <int-xml:mapping value="USA" channel="usaChannel" />
-    </int-xml:xpath-router>
-
 
 
     <!-- Here i am reading and transforming the xml file -->
@@ -57,19 +29,55 @@
             id="file-2-string-transformer" input-channel="inboundChannel"
             output-channel="xml-inboundChannel" charset="UTF-8"/>
 
-<!--    <int-xml:unmarshalling-transformer id="xml-2-object-transformer" input-channel="xml-inboundChannel"
-                                       output-channel="outboundChannel"
+    <!-- here i am giving the router -->
+
+    <int:channel id="xml-inboundChannel"></int:channel>
+
+    <int-xml:xpath-router id="orderTypeRouter"
+                          input-channel="xml-inboundChannel">
+        <int-xml:xpath-expression expression="/shiporder/shipto/country" />
+        <int-xml:mapping value="AUS" channel="ausChannel" />
+        <int-xml:mapping value="USA" channel="usaChannel" />
+    </int-xml:xpath-router>
+
+    <!--Now here i am defining the outbound channel for usa and aus -->
+
+    <int-file:outbound-channel-adapter channel="usaChannel"
+                                       id="consumer-file-adapter2"
+                                       directory="file:c://outboundAmerica" />
+
+    <int:channel id="usaChannel"></int:channel>
+
+    <int-file:outbound-channel-adapter channel="ausFirstChannel"
+                                       id="consumer-file-adapter1"
+                                       directory="file:c://outboundAustralia" />
+
+    <int:channel id="ausChannel"></int:channel>
+    <int:channel id="ausFirstChannel"></int:channel>
+    <int:channel id="ausSecondChannel"></int:channel>
+
+    <!-- Here i am defining the new recipient router whic-->
+
+    <int:recipient-list-router input-channel="ausChannel">
+        <int:recipient channel="ausFirstChannel" />
+        <int:recipient channel="ausSecondChannel" />
+    </int:recipient-list-router>
+
+
+
+<!--    <int-xml:unmarshalling-transformer id="xml-2-object-transformer" input-channel="ausChannel"
+                                       output-channel="ausSecondChannel"
                                        unmarshaller="jaxbMarshaller"></int-xml:unmarshalling-transformer>
 
     &lt;!&ndash; This is common for both marshaling and unmarshalling &ndash;&gt;
     <bean id="jaxbMarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
         <property name="contextPath" value="com.spring.integration.channel.domain"></property>
-    </bean>
+    </bean>-->
 
-    &lt;!&ndash; This is service activator for do any service or bossiness logic &ndash;&gt;
+    <!-- This is service activator for do any service or bossiness logic -->
     <int:service-activator id="printing-service-activator"
-                           input-channel="outboundChannel" ref="serviceActivator"/>
-    <bean id="serviceActivator" class="com.spring.integration.channel.ExampleServiceActivator"/>-->
+                           input-channel="ausSecondChannel" ref="serviceActivator"/>
+    <bean id="serviceActivator" class="com.spring.integration.channel.ExampleServiceActivator"/>
 
 </beans>
 
