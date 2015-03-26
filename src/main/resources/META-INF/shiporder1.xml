@@ -2,16 +2,16 @@
 <shiporder orderid="889923"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:noNamespaceSchemaLocation="shiporder.xsd">
-  <orderperson>John Smith</orderperson>
+  <orderperson>Ajay Soni</orderperson>
   <shipto>
-    <name>George Blatt</name>
-    <address>Elm St</address>
-    <city>New Orleans</city>
+    <name>Luis</name>
+    <address>B-23</address>
+    <city>New York</city>
     <country>USA</country>
   </shipto>
   <item>
-    <title>Hide your heart</title>
+    <title>Coca cola zero</title>
     <quantity>2</quantity>
-    <price>19.80</price>
+    <price>100</price>
   </item>
 </shiporder>
