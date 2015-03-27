@@ -26,13 +26,9 @@
 
     <int:channel id="xml-inboundChannel" />
 
-    <int-xml:unmarshalling-transformer
-            id="xml-2-object-transformer" input-channel="xml-inboundChannel"
-            output-channel="outboundChannel" unmarshaller="jaxbMarshaller" />
-
-    <bean id="jaxbMarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
-        <property name="contextPath" value="com.spring.integration.channel.domain" />
-    </bean>
+    <int:header-enricher input-channel="xml-inboundChannel" output-channel="outboundChannel">
+        <int:header name="NAME" value="AJAY" />
+    </int:header-enricher>
 
     <int:channel id="outboundChannel" />
 
